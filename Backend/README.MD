@@ -269,34 +269,19 @@ This endpoint is used to register a new captain. It accepts captain details such
 
 The request body must be in JSON format and include the following fields:
 
-| Field                 | Type   | Required | Description                                              |
-| --------------------- | ------ | -------- | -------------------------------------------------------- |
-| `fullname`            | Object | Yes      | Contains `firstname` and `lastname`.                     |
-| `fullname.firstname`  | String | Yes      | The first name of the captain (minimum 3 characters).    |
-| `fullname.lastname`   | String | No       | The last name of the captain (minimum 3 characters).     |
-| `email`               | String | Yes      | The email address of the captain (must be valid).        |
-| `password`            | String | Yes      | The password for the captain (minimum 6 characters).     |
-| `vehicle`             | Object | Yes      | Contains vehicle details.                                |
-| `vehicle.color`       | String | Yes      | The color of the vehicle (minimum 3 characters).         |
-| `vehicle.plate`       | String | Yes      | The license plate of the vehicle (minimum 3 characters). |
-| `vehicle.capacity`    | Number | Yes      | The seating capacity of the vehicle (minimum 1).         |
-| `vehicle.vehicleType` | String | Yes      | The type of the vehicle (`car`, `motocycle`, or `auto`). |
-
-#### Example Request Body
-
 ```json
 {
   "fullname": {
-    "firstname": "Michael",
-    "lastname": "Smith"
+    "firstname": "Michael", // Required, must be at least 3 characters long
+    "lastname": "Smith" // Optional, must be at least 3 characters long if provided
   },
-  "email": "michael.smith@example.com",
-  "password": "securePassword123",
+  "email": "michael.smith@example.com", // Required, must be a valid email
+  "password": "securePassword123", // Required, must be at least 6 characters long
   "vehicle": {
-    "color": "Red",
-    "plate": "ABC-1234",
-    "capacity": 4,
-    "vehicleType": "car"
+    "color": "Red", // Required, must be at least 3 characters long
+    "plate": "ABC-1234", // Required, must be at least 3 characters long
+    "capacity": 4, // Required, must be a number and at least 1
+    "vehicleType": "car" // Required, must be one of ["car", "motocycle", "auto"]
   }
 }
 ```
@@ -310,25 +295,26 @@ The request body must be in JSON format and include the following fields:
 - **Status Code:** `201 Created`
 - **Description:** The captain was successfully registered.
 - **Response Body:**
-  ```json
-  {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "captain": {
-      "_id": "643f1c2e8f1b2c001c8e4f1a",
-      "fullname": {
-        "firstname": "Michael",
-        "lastname": "Smith"
-      },
-      "email": "michael.smith@example.com",
-      "vehicle": {
-        "color": "Red",
-        "plate": "ABC-1234",
-        "capacity": 4,
-        "vehicleType": "car"
-      }
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // JWT token for authentication
+  "captain": {
+    "_id": "643f1c2e8f1b2c001c8e4f1a", // Unique ID of the captain
+    "fullname": {
+      "firstname": "Michael",
+      "lastname": "Smith"
+    },
+    "email": "michael.smith@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC-1234",
+      "capacity": 4,
+      "vehicleType": "car"
     }
   }
-  ```
+}
+```
 
 ##### Error Responses
 
@@ -337,50 +323,261 @@ The request body must be in JSON format and include the following fields:
    - **Status Code:** `400 Bad Request`
    - **Description:** One or more fields are invalid.
    - **Response Body:**
-     ```json
-     {
-       "errors": [
-         {
-           "msg": "First Name must be 3 characters long",
-           "param": "fullname.firstname",
-           "location": "body"
-         }
-       ]
-     }
-     ```
+
+   ```json
+   {
+     "errors": [
+       {
+         "msg": "First Name must be 3 characters long", // Example error message
+         "param": "fullname.firstname", // Field that caused the error
+         "location": "body" // Location of the error
+       }
+     ]
+   }
+   ```
 
 2. **Duplicate Email**
 
    - **Status Code:** `400 Bad Request`
    - **Description:** The email is already registered.
    - **Response Body:**
-     ```json
-     {
-       "message": "Captain already exists"
-     }
-     ```
+
+   ```json
+   {
+     "message": "Captain already exists"
+   }
+   ```
 
 3. **Server Error**
+
    - **Status Code:** `500 Internal Server Error`
    - **Description:** An unexpected error occurred on the server.
    - **Response Body:**
-     ```json
-     {
-       "error": "Internal Server Error"
-     }
-     ```
+
+   ```json
+   {
+     "error": "Internal Server Error"
+   }
+   ```
+
+---
+
+### 6. `/captains/login`
+
+#### Description
+
+This endpoint is used to authenticate a captain. It accepts the captain's email and password, verifies the credentials, and returns a JSON Web Token (JWT) along with the captain details upon successful authentication.
+
+---
+
+#### HTTP Method
+
+`POST`
+
+---
+
+#### Request Body
+
+```json
+{
+  "email": "michael.smith@example.com", // Required, must be a valid email
+  "password": "securePassword123" // Required, must be at least 6 characters long
+}
+```
+
+---
+
+#### Response
+
+##### Success Response
+
+- **Status Code:** `200 OK`
+- **Description:** The captain was successfully authenticated.
+- **Response Body:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // JWT token for authentication
+  "captain": {
+    "_id": "643f1c2e8f1b2c001c8e4f1a", // Unique ID of the captain
+    "fullname": {
+      "firstname": "Michael",
+      "lastname": "Smith"
+    },
+    "email": "michael.smith@example.com",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC-1234",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+##### Error Responses
+
+1. **Invalid Credentials**
+
+   - **Status Code:** `401 Unauthorized`
+   - **Description:** The email or password is incorrect.
+   - **Response Body:**
+
+   ```json
+   {
+     "message": "Invalid email or password"
+   }
+   ```
+
+2. **Validation Error**
+
+   - **Status Code:** `400 Bad Request`
+   - **Description:** One or more fields are invalid.
+   - **Response Body:**
+
+   ```json
+   {
+     "errors": [
+       {
+         "msg": "Invalid Email", // Example error message
+         "param": "email", // Field that caused the error
+         "location": "body" // Location of the error
+       }
+     ]
+   }
+   ```
+
+---
+
+### 7. `/captains/profile`
+
+#### Description
+
+This endpoint is used to retrieve the profile of the currently authenticated captain. The captain must provide a valid JWT token in the request headers.
+
+---
+
+#### HTTP Method
+
+`GET`
+
+---
+
+#### Headers
+
+```json
+{
+  "Authorization": "Bearer <your_token>" // Required, must be a valid JWT token
+}
+```
+
+---
+
+#### Response
+
+##### Success Response
+
+- **Status Code:** `200 OK`
+- **Description:** The captain's profile was successfully retrieved.
+- **Response Body:**
+
+```json
+{
+  "_id": "643f1c2e8f1b2c001c8e4f1a", // Unique ID of the captain
+  "fullname": {
+    "firstname": "Michael",
+    "lastname": "Smith"
+  },
+  "email": "michael.smith@example.com",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC-1234",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+##### Error Responses
+
+1. **Unauthorized**
+
+   - **Status Code:** `401 Unauthorized`
+   - **Description:** The captain is not authenticated.
+   - **Response Body:**
+
+   ```json
+   {
+     "message": "Unauthorized"
+   }
+   ```
+
+---
+
+### 8. `/captains/logout`
+
+#### Description
+
+This endpoint is used to log out the currently authenticated captain. It clears the authentication token from cookies and blacklists the token to prevent further use.
+
+---
+
+#### HTTP Method
+
+`GET`
+
+---
+
+#### Headers
+
+```json
+{
+  "Authorization": "Bearer <your_token>" // Required, must be a valid JWT token
+}
+```
+
+---
+
+#### Response
+
+##### Success Response
+
+- **Status Code:** `200 OK`
+- **Description:** The captain was successfully logged out.
+- **Response Body:**
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+##### Error Responses
+
+1. **Unauthorized**
+
+   - **Status Code:** `401 Unauthorized`
+   - **Description:** The captain is not authenticated.
+   - **Response Body:**
+
+   ```json
+   {
+     "message": "Unauthorized"
+   }
+   ```
 
 ---
 
 ### Notes
 
-- Ensure that the `Content-Type` header is set to `application/json` when making the request.
-- The `password` is hashed before being stored in the database for security purposes.
-- A valid JWT is returned upon successful registration, which can be used for authentication in subsequent requests.
+- Ensure that the `Authorization` header is set to `Bearer <token>` for `/captains/profile` and `/captains/logout`.
+- The `/captains/logout` endpoint blacklists the token, making it unusable for future requests.
 
 ---
 
-### Example cURL Request
+### Example cURL Requests
+
+#### `/captains/register`
 
 ```bash
 curl -X POST http://localhost:3000/captains/register \
@@ -399,4 +596,29 @@ curl -X POST http://localhost:3000/captains/register \
     "vehicleType": "car"
   }
 }'
+```
+
+#### `/captains/login`
+
+```bash
+curl -X POST http://localhost:3000/captains/login \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "michael.smith@example.com",
+  "password": "securePassword123"
+}'
+```
+
+#### `/captains/profile`
+
+```bash
+curl -X GET http://localhost:3000/captains/profile \
+-H "Authorization: Bearer <your_token>"
+```
+
+#### `/captains/logout`
+
+```bash
+curl -X GET http://localhost:3000/captains/logout \
+-H "Authorization: Bearer <your_token>"
 ```
