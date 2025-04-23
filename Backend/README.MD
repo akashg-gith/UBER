@@ -1,20 +1,22 @@
 # API Documentation
 
-## Endpoint: `/users/register`
+## Endpoints
 
-### Description
+### 1. `/users/register`
+
+#### Description
 
 This endpoint is used to register a new user. It accepts user details such as `fullname`, `email`, and `password`, hashes the password, and stores the user in the database. Upon successful registration, it returns a JSON Web Token (JWT) and the user details.
 
 ---
 
-### HTTP Method
+#### HTTP Method
 
 `POST`
 
 ---
 
-### Request Body
+#### Request Body
 
 The request body must be in JSON format and include the following fields:
 
@@ -41,9 +43,9 @@ The request body must be in JSON format and include the following fields:
 
 ---
 
-### Response
+#### Response
 
-#### Success Response
+##### Success Response
 
 - **Status Code:** `201 Created`
 - **Description:** The user was successfully registered.
@@ -62,7 +64,7 @@ The request body must be in JSON format and include the following fields:
   }
   ```
 
-#### Error Responses
+##### Error Responses
 
 1. **Validation Error**
 
@@ -104,24 +106,116 @@ The request body must be in JSON format and include the following fields:
 
 ---
 
+### 2. `/users/login`
+
+#### Description
+
+This endpoint is used to authenticate a user. It accepts the user's email and password, verifies the credentials, and returns a JSON Web Token (JWT) along with the user details upon successful authentication.
+
+---
+
+#### HTTP Method
+
+`POST`
+
+---
+
+#### Request Body
+
+The request body must be in JSON format and include the following fields:
+
+| Field      | Type   | Required | Description                                    |
+| ---------- | ------ | -------- | ---------------------------------------------- |
+| `email`    | String | Yes      | The email address of the user (must be valid). |
+| `password` | String | Yes      | The password for the user.                     |
+
+#### Example Request Body
+
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+---
+
+#### Response
+
+##### Success Response
+
+- **Status Code:** `200 OK`
+- **Description:** The user was successfully authenticated.
+- **Response Body:**
+  ```json
+  {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "_id": "643f1c2e8f1b2c001c8e4f1a",
+      "fullname": {
+        "firstname": "John",
+        "lastname": "Doe"
+      },
+      "email": "john.doe@example.com"
+    }
+  }
+  ```
+
+##### Error Responses
+
+1. **Invalid Credentials**
+
+   - **Status Code:** `401 Unauthorized`
+   - **Description:** The email or password is incorrect.
+   - **Response Body:**
+     ```json
+     {
+       "message": "Invalid email or password"
+     }
+     ```
+
+2. **Validation Error**
+
+   - **Status Code:** `400 Bad Request`
+   - **Description:** One or more fields are invalid.
+   - **Response Body:**
+     ```json
+     {
+       "errors": [
+         {
+           "msg": "Invalid Email",
+           "param": "email",
+           "location": "body"
+         }
+       ]
+     }
+     ```
+
+3. **Server Error**
+   - **Status Code:** `500 Internal Server Error`
+   - **Description:** An unexpected error occurred on the server.
+   - **Response Body:**
+     ```json
+     {
+       "error": "Internal Server Error"
+     }
+     ```
+
+---
+
 ### Notes
 
 - Ensure that the `Content-Type` header is set to `application/json` when making the request.
-- The `password` is hashed before being stored in the database for security purposes.
-- A valid JWT is returned upon successful registration, which can be used for authentication in subsequent requests.
+- A valid JWT is returned upon successful authentication, which can be used for authorization in subsequent requests.
 
 ---
 
 ### Example cURL Request
 
 ```bash
-curl -X POST http://localhost:3000/users/register \
+curl -X POST http://localhost:3000/users/login \
 -H "Content-Type: application/json" \
 -d '{
-  "fullname": {
-    "firstname": "John",
-    "lastname": "Doe"
-  },
   "email": "john.doe@example.com",
   "password": "password123"
 }'
